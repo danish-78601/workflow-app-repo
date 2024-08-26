@@ -17,24 +17,24 @@ jobs:
           app-id: ${{ vars.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
-      - name: Test Token
-        env:
-          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
-        run: |
-          # curl -H "Authorization: Bearer $GH_TOKEN" https://api.github.com/repos/${{ github.repository }}
-          curl -X POST https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews \
-          -H "Authorization: Bearer $GH_TOKEN" \
-          -H "Content-Type: application/json" \
-          -d '{"event":"APPROVE"}'
-
-
-
-      # - name: Approve the pull request
+      # - name: Test Token
       #   env:
       #     GH_TOKEN: ${{ steps.generate-token.outputs.token }}
       #   run: |
-      #     curl --request POST \
-      #       --url https://api.github.com/repos/${{github.repository}}/pulls/${{github.event.pull_request.number}}/reviews \
-      #       --header "authorization: Bearer GH_TOKEN" \
-      #       --header "content-type: application/json" \
-      #       -d '{"event":"APPROVE"}'
+      #     # curl -H "Authorization: Bearer $GH_TOKEN" https://api.github.com/repos/${{ github.repository }}
+      #     curl -X POST https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews \
+      #     -H "Authorization: Bearer $GH_TOKEN" \
+      #     -H "Content-Type: application/json" \
+      #     -d '{"event":"APPROVE"}'
+
+
+
+      - name: Approve the pull request
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+        run: |
+          curl --request POST \
+            --url https://api.github.com/repos/${{github.repository}}/pulls/${{github.event.pull_request.number}}/reviews \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "Content-type: application/json" \
+            -d '{"event":"APPROVE"}'
