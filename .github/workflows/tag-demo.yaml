@@ -30,9 +30,9 @@ jobs:
           git tag $TAG_NAME
           echo "Created tag $TAG_NAME"
 
-      - name: Push the tag using GitHub App token
+      - name: Push the tag using GITHUB_TOKEN
         env:
-          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: |
           TAG_NAME="v1.0.${{ github.run_number }}-${{ github.sha }}"
-          git push https://x-access-token:${{ env.GH_TOKEN }}@github.com/${{ github.repository }} $TAG_NAME
+          git push origin $TAG_NAME
