@@ -1,0 +1,26 @@
+name: Tag on Push to Master
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  tag_repo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Get the current commit hash
+        id: get_commit
+        run: echo "::set-output name=sha::$(git rev-parse --short HEAD)"
+
+      - name: Create Git tag
+        id: create_tag
+        run: |
+          git tag v1.0.${{ github.run_number }}-${{ steps.get_commit.outputs.sha }}
+          git push origin v1.0.${{ github.run_number }}-${{ steps.get_commit.outputs.sha }}
+
+      - name: Tagging done
+        run: echo "Tagged with v1.0.${{ github.run_number }}-${{ steps.get_commit.outputs.sha }}"
