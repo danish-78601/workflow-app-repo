@@ -12,15 +12,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Get the current commit hash
-        id: get_commit
-        run: echo "::set-output name=sha::$(git rev-parse --short HEAD)"
+      - name: Generate GitHub App token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
       - name: Create Git tag
-        id: create_tag
         run: |
-          git tag v1.0.${{ github.run_number }}-${{ steps.get_commit.outputs.sha }}
-          git push origin v1.0.${{ github.run_number }}-${{ steps.get_commit.outputs.sha }}
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag v1.0.${{ github.run_number }}-${{ github.sha }}
+          git push --tags https://${{ steps.generate-token.outputs.token }}@github.com/${{ github.repository }}
 
       - name: Tagging done
-        run: echo "Tagged with v1.0.${{ github.run_number }}-${{ steps.get_commit.outputs.sha }}"
+        run: echo "Tagged with v1.0.${{ github.run_number }}-${{ github.sha }}"
