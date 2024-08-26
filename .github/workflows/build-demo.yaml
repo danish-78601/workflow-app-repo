@@ -1,0 +1,23 @@
+name: Run on Tag
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run build
+        run: |
+          echo "Building for tag $GITHUB_REF_NAME"
+          # Insert your build commands here
+
+      - name: Deploy
+        run: |
+          echo "Deploying for tag $GITHUB_REF_NAME"
+          # Insert your deployment commands here
