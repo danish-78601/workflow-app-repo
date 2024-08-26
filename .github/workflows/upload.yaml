@@ -3,7 +3,7 @@ name: APPROVE
 on: pull_request # run on pull request events
 
 permissions:
-  pull-requests: write # grant write permission on the pull request
+  pull-requests: write # grant write permission on the pull request test
 
 jobs:
   approve:
