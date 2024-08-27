@@ -21,7 +21,7 @@ jobs:
 
       - name: Get the current commit hash
         id: get_commit
-        run: echo "::set-output name=sha::$(git rev-parse --short HEAD)"
+        run: echo "::set-output name=sha::$(git rev-parse HEAD)"
 
       - name: Create a lightweight tag
         env:
