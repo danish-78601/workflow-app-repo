@@ -18,8 +18,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@v1
         with:
-          app-id: ${{ secrets.WORKFLOW_COMMITTER_APP_ID }}
-          private-key: ${{ secrets.WORKFLOW_COMMITTER_PRIVATE_KEY }}
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
       - name: Get GitHub App User ID
         id: get-user-id
