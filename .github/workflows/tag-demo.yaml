@@ -18,26 +18,25 @@ jobs:
         with:
           app-id: ${{ vars.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
-
+          
+      - name: Get GitHub App User ID
+        id: get-user-id
+        run: echo "user-id=$(gh api "/users/${{ steps.app-token.outputs.app-slug }}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+      - run: |
+          git config --global user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
+          git config --global user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com>'
+      # git commands like commit work using the bot user
       - name: Get the current commit hash
         id: get_commit
-        run: echo "::set-output name=sha::$(git rev-parse HEAD)"
+        run: echo "::set-output name=sha::$(git rev-parse --short HEAD)"
 
-      - name: Create a lightweight tag
-        env:
-          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+      - name: Create Git tag
+        id: create_tag
         run: |
-          TAG_NAME="v1.0.${{ github.run_number }}"
-          COMMIT_SHA="${{ steps.get_commit.outputs.sha }}"
-          curl -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer $GH_TOKEN" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/repos/${{ github.repository }}/git/refs \
-            -d '{
-              "ref": "refs/tags/'"$TAG_NAME"'",
-              "sha": "'"$COMMIT_SHA"'"
-            }'
-
+          git tag v1.0.${{ github.run_number }}-${{ steps.get_commit.outputs.sha }}
+          git push origin v1.0.${{ github.run_number }}-${{ steps.get_commit.outputs.sha }}
+          
       - name: Tagging done
         run: echo "Tagged with v1.0.${{ github.run_number }}-${{ steps.get_commit.outputs.sha }}"
