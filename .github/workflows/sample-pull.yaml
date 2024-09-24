@@ -1,0 +1,40 @@
+name: Pull and Deploy from ECR
+
+on:
+  workflow_dispatch:  # This allows the workflow to be manually triggered
+  push:
+    branches:
+      - pull-test-branch  # Trigger when pushing to the main branch
+
+env:
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}  
+  AWS_REGION: ${{ secrets.AWS_REGION }}          
+  ECR_REPOSITORY: "ip-2616-poc"          
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/ecr-pusher-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Pull Docker image from ECR
+        run: |
+          docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+
+
