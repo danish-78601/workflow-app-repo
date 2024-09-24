@@ -1,0 +1,83 @@
+name: Sample build and push workflow
+
+on:
+  workflow_dispatch:  # This allows the workflow to be manually triggered
+  push:
+    branches:
+      - main
+
+env:
+  AWS_ACCOUNT_ID: "217355720684"  
+  AWS_REGION: "us-west-2"          
+  ECR_REPOSITORY: "ip-2616-poc"          
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/ecr-pusher-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Ensure ECR repository exists
+        run: |
+          aws ecr describe-repositories --repository-names ${{ env.ECR_REPOSITORY }} || \
+          aws ecr create-repository --repository-name ${{ env.ECR_REPOSITORY }} --region ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io/dexcare
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PACKAGE_MANAGEMENT }}
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/dexcare/${{ env.ECR_REPOSITORY }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}
+          tags: |
+            type=ref,event=tag
+
+      - name: Set up context for buildx
+        id: buildx-context
+        run: docker context create builders
+
+      - name: Set up builder
+        uses: docker/setup-buildx-action@v3
+        id: buildx
+        with:
+          endpoint: builders
+          install: true
+
+      - name: Build and push app Docker image to ECR
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          labels: ${{ steps.meta.outputs.labels }}
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ steps.meta.outputs.tags }}
