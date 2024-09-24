@@ -52,15 +52,15 @@ jobs:
       #     username: ${{ github.actor }}
       #     password: ${{ secrets.GHCR_PACKAGE_MANAGEMENT }}
 
-      # - name: Docker metadata
-      #   id: meta
-      #   uses: docker/metadata-action@v5
-      #   with:
-      #     images: |
-      #       ghcr.io/dexcare/${{ env.ECR_REPOSITORY }}
-      #       ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}
-      #     tags: |
-      #       type=ref,event=tag
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/dexcare/${{ env.ECR_REPOSITORY }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}
+          tags: |
+            type=ref,event=tag
 
       - name: Set up context for buildx
         id: buildx-context
@@ -72,7 +72,16 @@ jobs:
         with:
           endpoint: builders
           install: true
-
+      - name: Set default tag if necessary
+        id: set-tag
+        run: |
+          if [ -z "${{ steps.meta.outputs.tags }}" ]; then
+            echo "Using default tag 'latest'"
+            echo "TAG=latest" >> $GITHUB_ENV
+          else
+            echo "Using generated tag: ${{ steps.meta.outputs.tags }}"
+            echo "TAG=${{ steps.meta.outputs.tags }}" >> $GITHUB_ENV
+          fi
       - name: Build and push app Docker image to ECR
         uses: docker/build-push-action@v6
         with:
@@ -80,7 +89,7 @@ jobs:
           # labels: ${{ steps.meta.outputs.labels }}
           push: true
           tags: |
-            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:test-image
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.TAG }}
             
       - name: show images
         run: docker images
