@@ -4,7 +4,7 @@ on:
   workflow_dispatch:  # This allows the workflow to be manually triggered
   push:
     branches:
-      - main
+      - master
 
 env:
   AWS_ACCOUNT_ID: "217355720684"  
