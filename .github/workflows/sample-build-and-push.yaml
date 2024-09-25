@@ -4,7 +4,7 @@ on:
   workflow_dispatch:  # This allows the workflow to be manually triggered
   push:
     branches:
-      - master
+      - pusher-test
 
 env:
   AWS_ACCOUNT_ID: "217355720684"  
@@ -39,18 +39,18 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # - name: Login to Docker Hub
-      #   uses: docker/login-action@v3
-      #   with:
-      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
-      #     password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
           
-      # - name: Login to GHCR
-      #   uses: docker/login-action@v3
-      #   with:
-      #     registry: ghcr.io/dexcare
-      #     username: ${{ github.actor }}
-      #     password: ${{ secrets.GHCR_PACKAGE_MANAGEMENT }}
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io/dexcare
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PACKAGE_MANAGEMENT }}
 
       - name: Docker metadata
         id: meta
@@ -89,7 +89,7 @@ jobs:
           # labels: ${{ steps.meta.outputs.labels }}
           push: true
           tags: |
-            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.TAG }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:test-image
             
       - name: show images
         run: docker images
