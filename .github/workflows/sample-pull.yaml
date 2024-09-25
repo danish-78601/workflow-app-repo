@@ -4,7 +4,7 @@ on:
   workflow_dispatch:  # This allows the workflow to be manually triggered
   push:
     branches:
-      - main # Trigger when pushing to the main branch
+      - master # Trigger when pushing to the main branch
 
 env:
   AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}  
