@@ -4,7 +4,7 @@ on:
   workflow_dispatch:  # This allows the workflow to be manually triggered
   push:
     branches:
-      - pull-test-branch  # Trigger when pushing to the main branch
+      - main # Trigger when pushing to the main branch
 
 env:
   AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}  
@@ -26,15 +26,24 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/ecr-pusher-role
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/ecr-puller-role
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      # Debug the ECR registry URL to make sure login succeeded
+      - name: Debug ECR registry
+        run: |
+          echo "ECR Registry: ${{ steps.login-ecr.outputs.registry }}"
+
+      # Pull the Docker image from ECR
       - name: Pull Docker image from ECR
         run: |
           docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
 
-
+      # Optional: Run or deploy the Docker image as needed
+      - name: Run Docker container
+        run: |
+          docker run -d --name my-app ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
