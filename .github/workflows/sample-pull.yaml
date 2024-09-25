@@ -7,8 +7,8 @@ on:
       - master # Trigger when pushing to the main branch
 
 env:
-  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}  
-  AWS_REGION: ${{ secrets.AWS_REGION }}          
+  AWS_ACCOUNT_ID: "217355720684"  
+  AWS_REGION: "us-west-2"                
   ECR_REPOSITORY: "ip-2616-poc"          
 
 jobs:
